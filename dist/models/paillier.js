@@ -5,7 +5,8 @@ class PaillierSys {
     constructor(pubk, privk) {
         this.publicKey = pubk;
         this.privateKey = privk;
-        this.count = 0n;
+        this.count = this.publicKey.encrypt(0n);
+        this.counter = "0";
     }
 }
 exports.PaillierSys = PaillierSys;

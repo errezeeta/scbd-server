@@ -82,21 +82,35 @@ export async function checkVotes(req: Request, res: Response): Promise<Response>
 export async function vote(req: Request, res: Response): Promise<Response>{
 	const msg = (JSON.parse(JSON.stringify(req.body)));
 	const pubk_user = new RsaPublicKey(bic.base64ToBigint(msg.pubk_user_e), bic.base64ToBigint(msg.pubk_user_n));
-	const vote = new Voto(pubk_user, bic.base64ToBigint(msg.pubK_user_signed), msg.vote_encrypted, msg.vote_signed);
-	console.log("CHECK"+vote);//Verifico la firma viendo si coincide con el resumen de la clave publica del usuario
-	console.log(bic.base64ToBigint(msg.pubK_user_signed));
-	console.log((await pubk_ce).n);
-	const resumen_firma = (await pubk_ce).verify(bic.base64ToBigint(msg.pubK_user_signed));
+	const vote = new Voto(pubk_user, bic.base64ToBigint(msg.pubK_user_signed), msg.encrypt_pubks, msg.sign_privc);
+	console.log("CHECK"+bic.bigintToBase64(vote.pubK_user_signed));//Verifico la firma viendo si coincide con el resumen de la clave publica del usuario
+	const resumen_firma = (await pubk_ce).verify(vote.pubK_user_signed);
+	const a = bic.bigintToBase64(resumen_firma);
 	console.log("obtengo tras firmar: "+bic.bigintToBase64(resumen_firma));
-	const resumen_clave = sha.digest(pubk_ce, 'SHA-256');
+	const resumen_clave = sha.digest(pubk_user.toJsonString(), 'SHA-256');
 	console.log("Y el resumen da: " + await resumen_clave);
-	if (bic.bigintToBase64(resumen_firma) === await resumen_clave) {
+	const b= await resumen_clave;
+	if (a == b) {
+		console.log("Firma verificada!!"+vote.vote_signed);
 		//Verifico el voto viendo si coincide la firma del resumen del voto encriptado con el resumen del voto encriptau
-		const resumen_firma_voto = vote.pubk_user.verify(bic.textToBigint(vote.vote_signed));
+		const resumen_firma_voto = vote.pubk_user.verify(bic.base64ToBigint(await vote.vote_signed));
+		console.log("Firma comprobada: "+ bic.bigintToBase64(resumen_firma_voto));
+		console.log("voto encriptau: "+vote.vote_encrypted);
+		const voto_unencrypted = (await paillierSys).privateKey.decrypt(bic.base64ToBigint(vote.vote_encrypted));
+		console.log("Desencripto y obtengo: "+ bic.bigintToBase64(await voto_unencrypted));
+		var parsedVote = parseVote(bic.bigintToBase64(await voto_unencrypted));
+		console.log(Number(parsedVote[0]+parsedVote[1]));
+		var individualVote = (parsedVote[0]+parsedVote[1]+"/");
+		console.log(individualVote);
+		const test_vote_hash = sha.digest(individualVote,'SHA-256');
+		console.log(await test_vote_hash);
 		const resumen_voto = bic.textToBigint(await sha.digest(vote.vote_encrypted));
-		if (resumen_firma_voto === resumen_voto) {
+		if (bic.bigintToBase64(resumen_firma_voto) === await test_vote_hash) {
 			//El voto es legítimo y vamos a efectuar paillier
-			paillier.sumNumber(bic.textToBigint(vote.vote_encrypted));
+			console.log(BigInt(parsedVote[0]+parsedVote[1]))
+			paillier.sumNumber(BigInt(parsedVote[0]+parsedVote[1]));
+			var encryptedSum = (await paillierSys).publicKey.addition( bic.base64ToBigint(vote.vote_encrypted) + (await paillierSys).count);
+			console.log((await paillierSys).privateKey.decrypt((await paillierSys).count));
 			return res.status(201).json({
 				message: "Vote correctly realized"
 			});
@@ -120,3 +134,12 @@ function splitNum(num: number, pos: number) {
 	const s: string = num.toString();
 	return [s.substring(0, pos), s.substring(pos)];
    }
+
+function parseVote(num: String) {
+	return [num.substring(0,3), num.substring(3,6)];
+}
+
+function zeroPad(num: Number) {
+	return num.toString().padStart(4, "0");
+  }
+  
