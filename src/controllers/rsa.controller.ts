@@ -44,6 +44,15 @@ export async function getServerPubK(req: Request, res: Response): Promise<Respon
 	}
 }
 
+export async function getPaillier(req: Request, res: Response): Promise<Response>{
+	console.log((await paillierSys).publicKey.g);
+	const key = {
+		g: bic.bigintToBase64(await (await paillierSys).publicKey.g),
+		n: bic.bigintToBase64(await (await paillierSys).publicKey.n)
+	}
+	return res.status(201).json(key);
+}
+
 export async function signMsg(req: Request, res: Response): Promise<Response>{
 	const msg = req.body
 	const privKey: RsaPrivateKey = await (await keys).privateKey;
@@ -72,12 +81,16 @@ export async function checkVotes(req: Request, res: Response): Promise<Response>
 
 export async function vote(req: Request, res: Response): Promise<Response>{
 	const msg = (JSON.parse(JSON.stringify(req.body)));
-	const pubk_user = new RsaPublicKey(msg.pubk_user_e, msg.pubk_user_n);
-	const vote = new Voto(pubk_user, msg.pubK_user_signed, msg.vote_encrypted, msg.vote_signed);
-	//Verifico la firma viendo si coincide con el resumen de la clave publica del usuario
-	const resumen_firma = (await pubk_ce).verify(msg.pubK_user_signed);
-	const resumen_clave = bic.textToBigint(await sha.digest(vote.pubk_user.e));
-	if (resumen_firma === resumen_clave) {
+	const pubk_user = new RsaPublicKey(bic.base64ToBigint(msg.pubk_user_e), bic.base64ToBigint(msg.pubk_user_n));
+	const vote = new Voto(pubk_user, bic.base64ToBigint(msg.pubK_user_signed), msg.vote_encrypted, msg.vote_signed);
+	console.log("CHECK"+vote);//Verifico la firma viendo si coincide con el resumen de la clave publica del usuario
+	console.log(bic.base64ToBigint(msg.pubK_user_signed));
+	console.log((await pubk_ce).n);
+	const resumen_firma = (await pubk_ce).verify(bic.base64ToBigint(msg.pubK_user_signed));
+	console.log("obtengo tras firmar: "+bic.bigintToBase64(resumen_firma));
+	const resumen_clave = sha.digest(pubk_ce, 'SHA-256');
+	console.log("Y el resumen da: " + await resumen_clave);
+	if (bic.bigintToBase64(resumen_firma) === await resumen_clave) {
 		//Verifico el voto viendo si coincide la firma del resumen del voto encriptado con el resumen del voto encriptau
 		const resumen_firma_voto = vote.pubk_user.verify(bic.textToBigint(vote.vote_signed));
 		const resumen_voto = bic.textToBigint(await sha.digest(vote.vote_encrypted));

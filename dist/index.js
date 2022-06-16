@@ -31,6 +31,7 @@ const app_1 = __importDefault(require("./app"));
 const rsa_1 = require("@scbd/rsa");
 const node_fetch_1 = __importDefault(require("node-fetch"));
 const paillier_1 = __importDefault(require("./models/paillier"));
+const bic = __importStar(require("bigint-conversion"));
 const paillierBigint = __importStar(require("paillier-bigint"));
 const bitLength = 1024;
 async function main() {
@@ -51,7 +52,7 @@ async function getCEkeys() {
     });
     const data = await response.json();
     const pubk_ceJS = (JSON.parse(JSON.stringify(data)));
-    const pubk_ce = new rsa_1.RsaPublicKey(pubk_ceJS.e, pubk_ceJS.n);
+    const pubk_ce = new rsa_1.RsaPublicKey(bic.base64ToBigint(pubk_ceJS.e), bic.base64ToBigint(pubk_ceJS.n));
     return pubk_ce;
 }
 async function startPaillier() {

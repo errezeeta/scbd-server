@@ -3,11 +3,11 @@ import {generateKeys, RsaKeyPair, RsaPublicKey} from '@scbd/rsa';
 class Voto {
 
     public pubk_user: RsaPublicKey;
-    public pubK_user_signed: string;
+    public pubK_user_signed: bigint;
     public vote_encrypted: string;
     public vote_signed: string;
 
-    constructor(pubk_user: RsaPublicKey, pubk_user_signed: string, vote_encrypted: string, vote_signed: string) {
+    constructor(pubk_user: RsaPublicKey, pubk_user_signed: bigint, vote_encrypted: string, vote_signed: string) {
         this.pubk_user = pubk_user,
         this.pubK_user_signed = pubk_user_signed,
         this.vote_encrypted = vote_encrypted,
@@ -18,7 +18,7 @@ class Voto {
         return this.pubk_user;
     }
 
-    public getpubk_user_signed(): string {
+    public getpubk_user_signed(): bigint {
         return this.pubK_user_signed;
     }
 

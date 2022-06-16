@@ -2,6 +2,7 @@ import app from "./app";
 import {generateKeys, RsaKeyPair, RsaPublicKey} from '@scbd/rsa';
 import fetch from 'node-fetch';
 import PaillierSys from "./models/paillier";
+import * as bic from 'bigint-conversion';
 import * as paillierBigint from 'paillier-bigint';
 const bitLength = 1024;
 
@@ -25,7 +26,7 @@ async function getCEkeys() {
     });
     const data = await response.json();
     const pubk_ceJS = (JSON.parse(JSON.stringify(data)));
-    const pubk_ce = new RsaPublicKey(pubk_ceJS.e, pubk_ceJS.n);
+    const pubk_ce = new RsaPublicKey(bic.base64ToBigint(pubk_ceJS.e), bic.base64ToBigint(pubk_ceJS.n));
     return pubk_ce;
 }
 

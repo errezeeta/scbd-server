@@ -38,5 +38,9 @@ rsaRouter.route('/check')
     .get(rsa.checkVotes);
 rsaRouter.route('/check')
     .post(rsa.checkVotes);
+rsaRouter.route('/paillierkeys')
+    .post(rsa.getPaillier);
+rsaRouter.route('/paillierkeys')
+    .get(rsa.getPaillier);
 exports.default = rsaRouter;
 //# sourceMappingURL=rsa.route.js.map

@@ -21,4 +21,9 @@ rsaRouter.route('/check')
 rsaRouter.route('/check')
 	.post(rsa.checkVotes)
 
+rsaRouter.route('/paillierkeys')
+	.post(rsa.getPaillier)
+rsaRouter.route('/paillierkeys')
+	.get(rsa.getPaillier)
+
 export default rsaRouter;
