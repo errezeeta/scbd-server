@@ -26,14 +26,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkVote = exports.signMsg = exports.getServerPubK = exports.generateBothKeys = void 0;
+exports.vote = exports.checkVotes = exports.signMsg = exports.getServerPubK = exports.generateBothKeys = void 0;
 const rsa_1 = require("@scbd/rsa");
 const sha = __importStar(require("object-sha"));
 const bic = __importStar(require("bigint-conversion"));
 const paillier = __importStar(require("./paillier.controller"));
 const data_1 = __importDefault(require("../data"));
 const index_1 = require("../index");
+const results_1 = require("../models/results");
 const index_2 = require("../index");
+const index_3 = require("../index");
 const voto_1 = __importDefault(require("../models/voto"));
 const bitLength = 1024;
 async function generateBothKeys(req, res) {
@@ -75,7 +77,25 @@ async function signMsg(req, res) {
     return res.status(201).json({ signature: signed });
 }
 exports.signMsg = signMsg;
-async function checkVote(req, res) {
+async function checkVotes(req, res) {
+    const username = req.body;
+    if (username === "admin") {
+        const final = splitNum(Number((await index_3.paillierSys).count), 3);
+        const v1 = Number(final[0]);
+        const v2 = Number(final[1]);
+        const results = new results_1.PaillierResults(v1, v2);
+        var json = JSON.stringify(results);
+        return res.status(201).json(json);
+    }
+    else {
+        const error = {
+            message: "You are not authorized"
+        };
+        return res.status(401).json(error);
+    }
+}
+exports.checkVotes = checkVotes;
+async function vote(req, res) {
     const msg = (JSON.parse(JSON.stringify(req.body)));
     const pubk_user = new rsa_1.RsaPublicKey(msg.pubk_user_e, msg.pubk_user_n);
     const vote = new voto_1.default(pubk_user, msg.pubK_user_signed, msg.vote_encrypted, msg.vote_signed);
@@ -90,7 +110,7 @@ async function checkVote(req, res) {
             //El voto es legítimo y vamos a efectuar paillier
             paillier.sumNumber(bic.textToBigint(vote.vote_encrypted));
             return res.status(201).json({
-                message: "Vote correcly realized"
+                message: "Vote correctly realized"
             });
         }
         else {
@@ -107,5 +127,9 @@ async function checkVote(req, res) {
         return res.status(401).json(error);
     }
 }
-exports.checkVote = checkVote;
+exports.vote = vote;
+function splitNum(num, pos) {
+    const s = num.toString();
+    return [s.substring(0, pos), s.substring(pos)];
+}
 //# sourceMappingURL=rsa.controller.js.map

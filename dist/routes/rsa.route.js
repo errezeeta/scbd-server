@@ -28,11 +28,15 @@ const rsa = __importStar(require("../controllers/rsa.controller"));
 const rsaRouter = (0, express_1.Router)();
 rsaRouter.route('/generateKeys')
     .get(rsa.generateBothKeys);
-rsaRouter.route('/pubK_CE')
+rsaRouter.route('/pubK_S')
     .get(rsa.getServerPubK);
 rsaRouter.route('/sign')
     .get(rsa.signMsg);
+rsaRouter.route('/vote')
+    .post(rsa.vote);
 rsaRouter.route('/check')
-    .post(rsa.checkVote);
+    .get(rsa.checkVotes);
+rsaRouter.route('/check')
+    .post(rsa.checkVotes);
 exports.default = rsaRouter;
 //# sourceMappingURL=rsa.route.js.map
