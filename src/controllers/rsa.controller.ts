@@ -93,29 +93,45 @@ export async function vote(req: Request, res: Response): Promise<Response>{
 	if (a == b) {
 		console.log("Firma verificada!!"+vote.vote_signed);
 		//Verifico el voto viendo si coincide la firma del resumen del voto encriptado con el resumen del voto encriptau
-		const resumen_firma_voto = vote.pubk_user.verify(bic.base64ToBigint(await vote.vote_signed));
-		console.log("Firma comprobada: "+ bic.bigintToBase64(resumen_firma_voto));
+		const resumen_firma_voto = bic.bigintToBase64(vote.pubk_user.verify(bic.base64ToBigint(await vote.vote_signed)));
+		console.log("tengo esto: "+resumen_firma_voto);
 		console.log("voto encriptau: "+vote.vote_encrypted);
-		const voto_unencrypted = (await paillierSys).privateKey.decrypt(bic.base64ToBigint(vote.vote_encrypted));
-		console.log("Desencripto y obtengo: "+ bic.bigintToBase64(await voto_unencrypted));
-		var parsedVote = parseVote(bic.bigintToBase64(await voto_unencrypted));
-		console.log(Number(parsedVote[0]+parsedVote[1]));
-		var individualVote = (parsedVote[0]+parsedVote[1]+"/");
-		console.log(individualVote);
-		const test_vote_hash = sha.digest(individualVote,'SHA-256');
-		console.log(await test_vote_hash);
-		const resumen_voto = bic.textToBigint(await sha.digest(vote.vote_encrypted));
-		if (bic.bigintToBase64(resumen_firma_voto) === await test_vote_hash) {
-			//El voto es legítimo y vamos a efectuar paillier
-			console.log(BigInt(parsedVote[0]+parsedVote[1]))
-			paillier.sumNumber(BigInt(parsedVote[0]+parsedVote[1]));
-			var encryptedSum = (await paillierSys).publicKey.addition( bic.base64ToBigint(vote.vote_encrypted) + (await paillierSys).count);
-			console.log((await paillierSys).privateKey.decrypt((await paillierSys).count));
+		console.log("Tengo ahora mismo: "+((await paillierSys).privateKey.decrypt((await paillierSys).count)));
+		const check_hash = sha.digest(vote.vote_encrypted, 'SHA-256');
+		console.log("Comparo con: "+await check_hash);
+		// console.log("Y le voy a sumer: "+(await paillierSys).publicKey.encrypt(bic.base64ToBigint(vote.vote_encrypted)));
+		// const voto_unencrypted = (await paillierSys).privateKey.decrypt(bic.base64ToBigint(vote.vote_encrypted));
+		// console.log("Desencripto y obtengo: "+ bic.bigintToBase64(await voto_unencrypted));
+		// const suma = ((await paillierSys).privateKey.decrypt((await paillierSys).publicKey.addition((await paillierSys).publicKey.encrypt(1n), (await paillierSys).count)));
+		// //onst suma = (await paillierSys).publicKey.addition(bic.base64ToBigint(vote.vote_encrypted),(await paillierSys).count);
+		// (await paillierSys).count= suma;
+		// console.log("Si sumo el encriptado al total tengo: "+(await paillierSys).count);
+		// console.log("que significa: "+ bic.bigintToBase64((await paillierSys).privateKey.decrypt((await paillierSys).count)))
+		// console.log("Uno mas eso"+bic.bigintToBase64((await paillierSys).privateKey.decrypt((await paillierSys).publicKey.addition((await paillierSys).publicKey.encrypt(1n), (await paillierSys).count))));
+		// var parsedVote = parseVote(bic.bigintToBase64(await voto_unencrypted));
+		// console.log(Number(parsedVote[0]+parsedVote[1]));
+		// var individualVote = (parsedVote[0]+parsedVote[1]);
+		// console.log(individualVote);
+		// const test_vote_hash = sha.digest(individualVote,'SHA-256');
+		// console.log(await test_vote_hash);
+		if ((resumen_firma_voto) === await check_hash) {
+			console.log("el voto es : "+Number(bic.bigintToBase64((await paillierSys).privateKey.decrypt(bic.base64ToBigint(vote.vote_encrypted)))));
+			console.log("Firma comprobada: "+ (resumen_firma_voto));
+			var suma = (await paillierSys).publicKey.addition((await paillierSys).publicKey.encrypt(BigInt(Number(bic.bigintToBase64((await paillierSys).privateKey.decrypt(bic.base64ToBigint(vote.vote_encrypted)))))), (await paillierSys).count);
+			(await paillierSys).count = suma
+			var nuevo = bic.bigintToBase64((await paillierSys).privateKey.decrypt(suma));
+			console.log("recuento: "+((await paillierSys).privateKey.decrypt((await paillierSys).count)));
+			// (await paillierSys).counter = ((await paillierSys).privateKey.decrypt((await paillierSys).count)).toString();
+			// console.log((await paillierSys).counter);
+			console.log("PARSEO; "+((await paillierSys).privateKey.decrypt((await paillierSys).count)).toString());
+			(await paillierSys).counter = parseVote(((await paillierSys).privateKey.decrypt((await paillierSys).count)).toString());
+			(await paillierSys).count= (await paillierSys).publicKey.encrypt(bic.base64ToBigint(nuevo));
+			console.log((await paillierSys).getResoults());
 			return res.status(201).json({
 				message: "Vote correctly realized"
 			});
 		}
-		else {
+		{
 			const error = {
 				message: "You are not authorized"
 			}
@@ -136,7 +152,7 @@ function splitNum(num: number, pos: number) {
    }
 
 function parseVote(num: String) {
-	return [num.substring(0,3), num.substring(3,6)];
+	return [num.substring(0,4), num.substring(4,8)];
 }
 
 function zeroPad(num: Number) {

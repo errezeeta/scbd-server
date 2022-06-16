@@ -6,7 +6,13 @@ class PaillierSys {
         this.publicKey = pubk;
         this.privateKey = privk;
         this.count = this.publicKey.encrypt(0n);
-        this.counter = "0";
+        this.counter = ["0", "0"];
+    }
+    getResoults() {
+        var res = [0, 0];
+        res[0] = Number(this.counter[0]) / 1000;
+        res[1] = Number(this.counter[1]);
+        return res;
     }
 }
 exports.PaillierSys = PaillierSys;
