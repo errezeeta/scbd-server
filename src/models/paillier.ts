@@ -24,6 +24,16 @@ export class PaillierSys {
 
     }
 
+    public getRes(): String {
+        var res : Number[] = [0,0];
+        res[0]= Number(this.counter[0]) /1000;
+        res[1]= Number(this.counter[1]);
+        if (res[0] == 0.001) {
+            res[0] = 1;
+        }
+        return "Laporta tiene: "+res[0]+" | Bartomeu tiene: "+res[1];
+    }
+
 }
 
 export default PaillierSys;

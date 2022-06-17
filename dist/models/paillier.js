@@ -14,6 +14,15 @@ class PaillierSys {
         res[1] = Number(this.counter[1]);
         return res;
     }
+    getRes() {
+        var res = [0, 0];
+        res[0] = Number(this.counter[0]) / 1000;
+        res[1] = Number(this.counter[1]);
+        if (res[0] == 0.001) {
+            res[0] = 1;
+        }
+        return "Laporta tiene: " + res[0] + " | Bartomeu tiene: " + res[1];
+    }
 }
 exports.PaillierSys = PaillierSys;
 exports.default = PaillierSys;

@@ -126,7 +126,7 @@ export async function vote(req: Request, res: Response): Promise<Response>{
 			console.log("PARSEO; "+((await paillierSys).privateKey.decrypt((await paillierSys).count)).toString());
 			(await paillierSys).counter = parseVote(((await paillierSys).privateKey.decrypt((await paillierSys).count)).toString());
 			(await paillierSys).count= (await paillierSys).publicKey.encrypt(bic.base64ToBigint(nuevo));
-			console.log((await paillierSys).getResoults());
+			console.log((await paillierSys).getRes());
 			return res.status(201).json({
 				message: "Vote correctly realized"
 			});

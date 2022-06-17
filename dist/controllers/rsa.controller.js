@@ -150,7 +150,7 @@ async function vote(req, res) {
             console.log("PARSEO; " + ((await index_3.paillierSys).privateKey.decrypt((await index_3.paillierSys).count)).toString());
             (await index_3.paillierSys).counter = parseVote(((await index_3.paillierSys).privateKey.decrypt((await index_3.paillierSys).count)).toString());
             (await index_3.paillierSys).count = (await index_3.paillierSys).publicKey.encrypt(bic.base64ToBigint(nuevo));
-            console.log((await index_3.paillierSys).getResoults());
+            console.log((await index_3.paillierSys).getRes());
             return res.status(201).json({
                 message: "Vote correctly realized"
             });
